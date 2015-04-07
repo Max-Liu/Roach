@@ -17,6 +17,7 @@ func main() {
 		ConcurrentNumber: 2,
 		Rate:             1 * time.Second,
 		Log:              beeLog,
+		LinkConfig:       &roach.LinkConfig{},
 	}
 
 	clan := roach.NewClan(config)
