@@ -21,6 +21,7 @@ type LinkConfig struct {
 	BadLinkRetryTimes    int
 	RequestTimeOut       time.Duration
 	Log                  Logger
+	header               map[string]string
 }
 
 type ClanConfig struct {
@@ -30,6 +31,7 @@ type ClanConfig struct {
 	StartPoint       string
 	Host             string
 	Log              Logger
+	Header           map[string]string
 }
 
 var DefaultClanConfigs = &ClanConfig{

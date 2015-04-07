@@ -12,15 +12,12 @@ type Clan struct {
 	workerChan chan *Link
 }
 
-func init() {
-
-}
-
 func NewClan(config *ClanConfig) *Clan {
 	link := newLink(config.StartPoint)
 	config.LinkConfig.Target = config.StartPoint
 	config.LinkConfig.Log = config.Log
 	config.LinkConfig.Host = config.Host
+	config.LinkConfig.header = config.Header
 	link.setConfig(config.LinkConfig)
 	return &Clan{
 		startPoint: link,
@@ -31,16 +28,12 @@ func NewClan(config *ClanConfig) *Clan {
 
 func (clan *Clan) Rush() {
 
-	producer(clan.startPoint)
-	clan.customer(clan.startPoint)
+	clan.producer()
+	clan.customer()
 	<-exitChan
 }
 
-func (clan *Clan) SetConfig() {
-
-}
-
-func (clan *Clan) customer(l *Link) {
+func (clan *Clan) customer() {
 	go func() {
 		for {
 			select {
@@ -72,7 +65,6 @@ func (clan *Clan) customer(l *Link) {
 				}
 			}(i)
 			<-time.After(clan.config.Rate)
-			//file.WriteString(l.Url + " " + l.Title + strconv.Itoa(i.StatusCode) + "\n")
 		}
 	}()
 
@@ -85,8 +77,8 @@ func (clan *Clan) customer(l *Link) {
 	//}
 }
 
-func producer(l *Link) {
+func (clan *Clan) producer() {
 	go func() {
-		l.GetPageUrls()
+		clan.startPoint.GetPageUrls()
 	}()
 }

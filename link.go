@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"errors"
-	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -39,19 +38,13 @@ type Link struct {
 	log          Logger
 }
 
-type Request struct {
-	*http.Client
-	cookie string
-}
-
 type Roach struct {
 }
 
 func newLink(target string) *Link {
 	newLink := &Link{
-		Url:     target,
-		config:  DefaultLinkConfigs,
-		Request: NewRequest(),
+		Url:    target,
+		config: DefaultLinkConfigs,
 	}
 	return newLink
 }
@@ -62,21 +55,12 @@ func (link *Link) setConfig(config *LinkConfig) {
 		config.Log = DefaultLinkConfigs.Log
 		config.Log.SetLogger("console", "")
 	}
+	if config.header == nil {
+		link.config.header = make(map[string]string)
+	} else {
+		link.config.header = config.header
+	}
 	link.log = config.Log
-}
-
-func NewRequest() *Request {
-	transport := http.Transport{
-		Dial: dialTimeout,
-	}
-
-	newRequest := &Request{
-		cookie: ``,
-	}
-	newRequest.Client = &http.Client{
-		Transport: &transport,
-	}
-	return newRequest
 }
 
 func (link *Link) MakeRequest() (*http.Response, error) {
@@ -84,26 +68,18 @@ func (link *Link) MakeRequest() (*http.Response, error) {
 		return nil, errors.New("has Requested")
 	}
 
-	req, err := http.NewRequest("GET", string(link.Url), nil)
+	req, err := NewRequest("GET", string(link.Url), link.config.header)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("Accept", `text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8`)
-	req.Header.Add("Accept-Encoding", `gzip,deflate,sdch"`)
-	req.Header.Add("Accept-Language", `en-US,en;q=0.8,ja;q=0.6,zh-CN;q=0.4,zh-TW;q=0.2`)
-	req.Header.Add("Connection", `keep-alive"`)
-	req.Header.Add("Cache-Control", "max-age=0")
-	cookieString := link.Request.cookie
 
-	req.Header.Add("Cookie", cookieString)
-	req.Header.Add("User-Agent", `mozila/5.0 (Macintosh; Intel Mac OS X 10_9_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36`)
 	var breakCounter int
 	var t0, t1 time.Time
 
 	for {
 		t0 = time.Now()
 		link.log.Informational("Requesting %s", req.URL.String())
-		resp, err := link.Request.Do(req)
+		resp, err := http.DefaultClient.Do(req)
 		t1 = time.Now()
 		if err != nil {
 			breakCounter++
@@ -204,10 +180,6 @@ lookingForLink:
 	}
 	l.HasGetUrl = true
 	return nil
-}
-
-func dialTimeout(network, addr string) (net.Conn, error) {
-	return net.DialTimeout(network, addr, time.Duration(requestTimeOut))
 }
 
 func get_title(link *Link, contentStr string) {
