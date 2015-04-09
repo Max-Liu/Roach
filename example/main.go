@@ -17,7 +17,7 @@ func main() {
 	customHeader["Accept-Language"] = `en-US,en;q=0.8,ja;q=0.6,zh-CN;q=0.4,zh-TW;q=0.2`
 	customHeader["Connection"] = `keep-alive`
 	customHeader["Cache-Control"] = "max-age=0"
-
+	//req.Header.Add("Cookie", cookieString)
 	config := &roach.ClanConfig{
 		StartPoint:       "http://tieba.baidu.com",
 		Host:             "baidu.com",
