@@ -1,9 +1,6 @@
 package roach
 
-import (
-	"log"
-	"time"
-)
+import "time"
 
 type Clan struct {
 	startPoint *Link
@@ -48,7 +45,7 @@ func (clan *Clan) customer() {
 				}
 
 			case <-time.After(10 * time.Second):
-				log.Println("break")
+				clan.log.Informational("stoped request from workerchan")
 				exitChan <- true
 				break
 			}
@@ -61,7 +58,7 @@ func (clan *Clan) customer() {
 			go func(*Link) {
 				err := i.GetPageUrls()
 				if err != nil {
-					log.Println(err)
+					clan.log.Warning(err.Error())
 				}
 			}(i)
 			<-time.After(clan.config.Rate)
